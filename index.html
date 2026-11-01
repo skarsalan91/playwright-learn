@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Playwright Graph – Learn &amp; Practice</title>
+<style>
+  :root{--bg1:#4a5563;--bg2:#1f2630;--line:#ffffff2e;--mut:#b9c4d4;--ok:#4ade80;--acc:#8ec5ff}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#fff}
+  body{background:radial-gradient(ellipse at 50% 40%,var(--bg1),var(--bg2) 75%)}
+  canvas{position:fixed;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}
+  .top{position:fixed;top:10px;left:12px;right:12px;display:flex;gap:10px;align-items:center;z-index:3;flex-wrap:wrap;pointer-events:none}
+  .top>*{pointer-events:auto}
+  h1{font-size:17px;margin:0;white-space:nowrap;text-shadow:0 1px 4px #0008}
+  input[type=search]{flex:1;min-width:120px;max-width:260px;padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:#0007;color:#fff;font-size:14px;outline:none;backdrop-filter:blur(6px)}
+  input::placeholder{color:#fffa}
+  button{font:inherit;color:#fff;cursor:pointer}
+  .b{padding:8px 13px;border-radius:999px;border:1px solid var(--line);background:#0007;font-size:13px;backdrop-filter:blur(6px)}
+  .b:hover{background:#ffffff30}
+  .ok{background:var(--ok)!important;color:#06240f!important;border-color:var(--ok)!important;font-weight:600}
+  .prog{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mut);background:#0006;padding:6px 10px;border-radius:999px}
+  .bar{width:90px;height:8px;border-radius:99px;background:#fff2;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--ok);transition:.3s}
+  .hint{position:fixed;top:56px;left:14px;font-size:12px;color:#ffffffb8;z-index:2;text-shadow:0 1px 3px #000a;pointer-events:none}
+  .legend{position:fixed;left:12px;bottom:12px;display:flex;gap:12px;font-size:12px;background:#0007;padding:8px 12px;border-radius:12px;backdrop-filter:blur(6px);z-index:2;flex-wrap:wrap}
+  .legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:var(--c);box-shadow:0 0 8px var(--c)}
+  .panel{position:fixed;right:12px;top:12px;bottom:12px;width:min(470px,calc(100% - 24px));background:#0b1118ec;border:1px solid var(--line);border-radius:16px;backdrop-filter:blur(10px);z-index:6;display:flex;flex-direction:column;transform:translateX(110%);transition:.25s;overflow:hidden}
+  .panel.show{transform:none}
+  .ph{padding:14px 16px 8px;display:flex;gap:10px;align-items:flex-start}
+  .ph h2{margin:2px 0 0;font-size:19px;flex:1}
+  .tag{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--acc)}
+  .x{border:0;background:#ffffff1c;border-radius:50%;width:30px;height:30px;font-size:16px}
+  .tabs{display:flex;gap:6px;padding:0 16px 10px;border-bottom:1px solid var(--line)}
+  .tb{padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:none;font-size:13px}
+  .tb.on{background:var(--acc);color:#0b1118;border-color:var(--acc);font-weight:600}
+  .pb{flex:1;overflow:auto;padding:14px 16px}
+  .pb p{margin:0 0 12px;font-size:14px;line-height:1.55;color:#e4ebf5}
+  .pb h4{margin:14px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chips b{font-weight:500;font-size:12px;padding:4px 10px;border-radius:999px;background:#ffffff1c;cursor:pointer}
+  .chips b:hover{background:#ffffff38}
+  .codewrap{position:relative}
+  pre{margin:0;padding:14px;background:#05080d;border:1px solid var(--line);border-radius:12px;overflow:auto;font:12.5px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#dbe6f6;white-space:pre}
+  .cp{position:absolute;top:8px;right:8px;font-size:11px;padding:4px 9px}
+  .k{color:#ff9ac1}.s{color:#a8e6a1}.c{color:#7d8ba1}
+  .task{padding:12px 14px;border-left:3px solid #ffd27a;background:#ffd27a14;border-radius:0 12px 12px 0;font-size:14px;line-height:1.5;margin-bottom:12px}
+  textarea{width:100%;min-height:130px;padding:12px;border-radius:12px;border:1px solid var(--line);background:#05080d;color:#dbe6f6;font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace;outline:none;resize:vertical}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .sol{display:none;margin-top:12px}.sol.show{display:block}
+  @media(max-width:700px){.panel{top:auto;height:78vh;width:calc(100% - 16px);right:8px;bottom:8px;transform:translateY(110%)}.panel.show{transform:none}h1{font-size:14px}.prog{margin-left:0}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="top">
+  <h1>🎭 Playwright – Learn &amp; Practice</h1>
+  <input id="q" type="search" placeholder="Search a concept…" autocomplete="off">
+  <button class="b" id="rand">🎲 Random practice</button>
+  <button class="b" id="reset">Reset layout</button>
+  <div class="prog"><span id="pt">0 / 0 practiced</span><div class="bar"><i id="pbar"></i></div></div>
+</div>
+<div class="hint">Tap a node → Definition · Example · Practice. Finish a practice to turn the node green.</div>
+<div class="legend">
+  <span style="--c:#8ec5ff">Core</span><span style="--c:#ffffff">Main topic</span><span style="--c:#8fa3c4">Sub-topic</span><span style="--c:#4ade80">Practiced</span>
+</div>
+
+<div class="panel" id="panel">
+  <div class="ph"><div style="flex:1"><div class="tag" id="pTag"></div><h2 id="pTitle"></h2></div><button class="x" id="pX">✕</button></div>
+  <div class="tabs"><button class="tb on" data-t="d">📖 Definition</button><button class="tb" data-t="e">💻 Example</button><button class="tb" data-t="p">🏋️ Practice</button></div>
+  <div class="pb" id="pBody"></div>
+</div>
+
+<script>
+// ================= DATA: [id, type, definition, example, practice task, solution] =================
+const HUB="What in Playwright";
+const D=[
+[HUB,0,
+`Playwright is an open-source Node.js library from Microsoft for reliable end-to-end testing and browser automation. One API drives Chromium, Firefox and WebKit, with auto-waiting, a built-in test runner, tracing and code generation.`,
+`npm init playwright@latest
+npx playwright test
+npx playwright show-report`,
+`Install Playwright in an empty folder, then run the generated example tests in headed mode.`,
+`npm init playwright@latest
+npx playwright test --headed`],
+
+// ---- main topics
+["Playwright test writing",1,
+`Tests are written with @playwright/test. Every test receives a fresh, isolated page through fixtures. Group related tests with test.describe and name logical sections with test.step.`,
+`import { test, expect } from '@playwright/test';
+
+test.describe('Login', () => {
+  test('valid user lands on dashboard', async ({ page }) => {
+    await page.goto('https://example.com/login');
+    await page.getByLabel('Email').fill('a@b.com');
+    await page.getByRole('button', { name: 'Sign in' }).click();
+    await expect(page).toHaveURL(/dashboard/);
+  });
+});`,
+`Write a test that opens https://playwright.dev, clicks "Get started" and asserts the heading "Installation" is visible.`,
+`test('docs navigation', async ({ page }) => {
+  await page.goto('https://playwright.dev');
+  await page.getByRole('link', { name: 'Get started' }).click();
+  await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
+});`],
+
+["Assertions",1,
+`Web-first assertions like toBeVisible, toHaveText or toHaveCount retry automatically until they pass or time out, so you rarely need manual waits. Use expect(locator) for UI state.`,
+`await expect(page.getByRole('alert')).toHaveText('Saved');
+await expect(page).toHaveTitle(/Dashboard/);
+await expect(page.locator('li')).toHaveCount(3);`,
+`Assert that a list has exactly 3 items and that the first one contains the text "Apple".`,
+`const items = page.locator('ul.fruits li');
+await expect(items).toHaveCount(3);
+await expect(items.first()).toContainText('Apple');`],
+
+["Events",1,
+`Pages and contexts emit events such as request, response, console, pageerror, dialog, popup and download. Listen with page.on(), or wait for one with page.waitForEvent().`,
+`page.on('console', msg => console.log('LOG:', msg.text()));
+page.on('pageerror', err => console.log('ERR:', err.message));
+page.on('response', r => console.log(r.status(), r.url()));`,
+`Collect every console error while visiting the home page and fail the test if any occurred.`,
+`const errors: string[] = [];
+page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
+await page.goto('/');
+expect(errors).toEqual([]);`],
+
+["hooks",1,
+`Hooks run setup and teardown code. beforeAll/afterAll run once per worker for a file or describe block; beforeEach/afterEach run around every single test.`,
+`test.beforeEach(async ({ page }) => {
+  await page.goto('/login');
+});
+
+test.afterEach(async ({ page }, testInfo) => {
+  if (testInfo.status !== testInfo.expectedStatus) {
+    await page.screenshot({ path: 'failed.png' });
+  }
+});`,
+`Add a hook so every test in the file starts on the home page.`,
+`test.beforeEach(async ({ page }) => {
+  await page.goto('/');
+});`],
+
+["selectors & locators",1,
+`A locator is a lazy, auto-waiting handle to an element. Prefer user-facing locators: getByRole, getByLabel, getByText, getByTestId. Use CSS or XPath only when nothing better exists. Locators can be chained and filtered.`,
+`page.getByRole('button', { name: 'Submit' });
+page.getByLabel('Password');
+page.getByTestId('cart-count');
+page.locator('.card').filter({ hasText: 'Pro' }).getByRole('button');`,
+`Locate the "Buy" button inside the product card whose text contains "Laptop".`,
+`page.locator('.product')
+  .filter({ hasText: 'Laptop' })
+  .getByRole('button', { name: 'Buy' });`],
+
+["Api Testing",1,
+`The request fixture sends HTTP calls directly, without a browser. Use it to test REST endpoints or to prepare and clean test data quickly.`,
+`test('create user', async ({ request }) => {
+  const res = await request.post('/api/users', { data: { name: 'Asha' } });
+  expect(res.status()).toBe(201);
+  expect((await res.json()).name).toBe('Asha');
+});`,
+`Send a GET to /api/users/1 and assert status 200 and that the JSON "id" equals 1.`,
+`const res = await request.get('/api/users/1');
+expect(res.ok()).toBeTruthy();
+expect((await res.json()).id).toBe(1);`],
+
+["Browser",1,
+`Playwright drives Chromium, Firefox and WebKit with the same API. Browsers can run headless or headed, and you can emulate real devices, locales and geolocation.`,
+`import { chromium } from '@playwright/test';
+
+const browser = await chromium.launch({ headless: false });
+const page = await browser.newPage();
+await page.goto('https://example.com');
+await browser.close();`,
+`Launch Firefox headed, open example.com and print the page title.`,
+`import { firefox } from '@playwright/test';
+
+const browser = await firefox.launch({ headless: false });
+const page = await browser.newPage();
+await page.goto('https://example.com');
+console.log(await page.title());
+await browser.close();`],
+
+["MCP",1,
+`Playwright MCP is a Model Context Protocol server. It lets AI assistants control a browser using structured accessibility snapshots instead of screenshots, so an agent can browse, click and test.`,
+`// add to your AI client's MCP config
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    }
+  }
+}`,
+`Register the Playwright MCP server in your AI client and ask it to open a page and list the main headings.`,
+`// config as in the Example tab, then prompt:
+"Open https://playwright.dev and list its main headings."`],
+
+["framework fundamentals",1,
+`A typical framework has a tests folder, a config file, page objects or helpers, fixtures and a reporter. Keep tests independent, readable and free of shared state.`,
+`project/
+ ├─ tests/login.spec.ts
+ ├─ pages/LoginPage.ts
+ ├─ fixtures/index.ts
+ ├─ playwright.config.ts
+ └─ package.json`,
+`Create a LoginPage class with a login(email, password) method and use it inside a test.`,
+`export class LoginPage {
+  constructor(private page: Page) {}
+  async login(email: string, pwd: string) {
+    await this.page.getByLabel('Email').fill(email);
+    await this.page.getByLabel('Password').fill(pwd);
+    await this.page.getByRole('button', { name: 'Sign in' }).click();
+  }
+}
+// in a test
+await new LoginPage(page).login('a@b.com', 'secret');`],
+
+["Actions",1,
+`Actions simulate users: click, fill, check, selectOption, hover, press, dragTo, setInputFiles. Each one waits until the element is actionable.`,
+`await page.getByRole('button', { name: 'Add' }).click();
+await page.getByLabel('Name').fill('Asha');
+await page.getByRole('checkbox').check();
+await page.getByLabel('Country').selectOption('IN');
+await page.keyboard.press('Enter');`,
+`Fill a form: type a name, tick a checkbox, choose "IN" in a dropdown and submit with Enter.`,
+`await page.getByLabel('Name').fill('Asha');
+await page.getByLabel('I agree').check();
+await page.getByLabel('Country').selectOption('IN');
+await page.keyboard.press('Enter');`],
+
+["fixtures",1,
+`Fixtures give each test isolated, reusable setup (page, context, request). You can extend test with your own fixtures, which are set up before and torn down after the test.`,
+`import { test as base, Page } from '@playwright/test';
+
+export const test = base.extend<{ admin: Page }>({
+  admin: async ({ browser }, use) => {
+    const ctx = await browser.newContext({ storageState: 'admin.json' });
+    await use(await ctx.newPage());
+    await ctx.close();
+  },
+});`,
+`Create a fixture named todoPage that opens /todos before the test starts.`,
+`export const test = base.extend<{ todoPage: Page }>({
+  todoPage: async ({ page }, use) => {
+    await page.goto('/todos');
+    await use(page);
+  },
+});`],
+
+["playwright.config.ts",1,
+`The central config: test directory, retries, timeouts, reporters, the use block, projects and webServer. Almost every global behaviour is controlled here.`,
+`import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests',
+  retries: 1,
+  reporter: 'html',
+  use: { baseURL: 'http://localhost:3000', trace: 'on-first-retry' },
+  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+});`,
+`Configure 2 retries on CI only (none locally) and set a baseURL.`,
+`export default defineConfig({
+  retries: process.env.CI ? 2 : 0,
+  use: { baseURL: 'http://localhost:3000' },
+});`],
+
+["Requests",1,
+`page.route() intercepts network calls so you can mock, modify, delay, block or just observe requests and responses. It makes tests fast and deterministic.`,
+`await page.route('**/api/products', route =>
+  route.fulfill({ json: [{ id: 1, name: 'Mock' }] })
+);
+await page.goto('/shop');`,
+`Mock /api/user to return { name: "Test" } and assert the page shows "Test".`,
+`await page.route('**/api/user', r => r.fulfill({ json: { name: 'Test' } }));
+await page.goto('/');
+await expect(page.getByText('Test')).toBeVisible();`],
+
+["How playwright can interact with DOM",1,
+`Playwright talks to the page through the browser protocol. Before acting it runs actionability checks (visible, stable, enabled, receives events) and can read or run code inside the page when needed.`,
+`await page.locator('#save').click();   // waits until actionable
+const text = await page.locator('h1').textContent();
+const n = await page.locator('a').count();`,
+`Count the links on a page and log the number.`,
+`const n = await page.locator('a').count();
+console.log('links:', n);`],
+
+// ---- sub topics
+["Wait for Dialog Event",2,
+`Alerts, confirms and prompts are browser dialogs. Handle them with page.on('dialog') or page.once('dialog') and call accept() or dismiss(). Unhandled dialogs are auto-dismissed.`,
+`page.once('dialog', d => d.accept());
+await page.getByText('Delete').click();
+// prompt: d.accept('yes')   cancel: d.dismiss()`,
+`Click a button that opens a confirm dialog, assert its message contains "Are you sure" and accept it.`,
+`page.once('dialog', async d => {
+  expect(d.message()).toContain('Are you sure');
+  await d.accept();
+});
+await page.getByText('Delete').click();`],
+
+["Wait for Page Event",2,
+`Links that open a new tab or window fire a popup (or context 'page') event. Start waiting for the event before the click, using Promise.all, so you never miss it.`,
+`const [popup] = await Promise.all([
+  page.waitForEvent('popup'),
+  page.getByText('Open help').click(),
+]);
+await popup.waitForLoadState();
+await expect(popup).toHaveTitle(/Help/);`,
+`Click a link that opens in a new tab and assert the new tab's URL contains "docs".`,
+`const [tab] = await Promise.all([
+  page.waitForEvent('popup'),
+  page.getByRole('link', { name: 'Docs' }).click(),
+]);
+await expect(tab).toHaveURL(/docs/);`],
+
+["Expect",2,
+`expect() has locator assertions that retry (await expect(locator)...) and generic ones that do not (expect(value)...). expect.soft records a failure but keeps the test running; expect.poll and toPass retry custom logic.`,
+`await expect(locator).toBeVisible();
+expect(total).toBe(5);
+await expect.soft(page.locator('h1')).toHaveText('Hi');
+await expect.poll(async () => (await request.get('/job')).status()).toBe(200);`,
+`Use a soft assertion on the page title and a normal assertion on the heading, so both failures are reported.`,
+`await expect.soft(page).toHaveTitle(/Home/);
+await expect(page.locator('h1')).toHaveText('Welcome');`],
+
+["afterAll",2,
+`Runs once after all tests in a file or describe block finish, in the same worker. Use it to remove shared data or close shared resources.`,
+`test.afterAll(async () => {
+  await db.cleanup();
+});`,
+`Delete a user created in beforeAll after all tests in the describe block have finished.`,
+`test.beforeAll(async ({ request }) => { /* create user */ });
+test.afterAll(async ({ request }) => {
+  await request.delete('/api/users/test-user');
+});`],
+
+["afterEach",2,
+`Runs after every test, even failed ones. Great for cleanup, or for attaching screenshots and logs when a test fails.`,
+`test.afterEach(async ({ page }, testInfo) => {
+  if (testInfo.status !== 'passed') {
+    await testInfo.attach('url', { body: page.url() });
+  }
+});`,
+`After each test, take a screenshot only when the test failed.`,
+`test.afterEach(async ({ page }, testInfo) => {
+  if (testInfo.status !== testInfo.expectedStatus) {
+    await page.screenshot({ path: testInfo.title + '.png' });
+  }
+});`],
+
+["storageState",2,
+`storageState saves cookies and local storage to a JSON file. Log in once in a setup step, save the state, then reuse it so each test starts already authenticated.`,
+`// setup: log in, then save
+await page.context().storageState({ path: 'auth.json' });
+
+// playwright.config.ts
+use: { storageState: 'auth.json' }`,
+`Write a setup test that logs in and saves state to auth.json, and show the config line that reuses it.`,
+`setup('login', async ({ page }) => {
+  await page.goto('/login');
+  await page.getByLabel('Email').fill('a@b.com');
+  await page.getByLabel('Password').fill('secret');
+  await page.getByRole('button', { name: 'Sign in' }).click();
+  await page.context().storageState({ path: 'auth.json' });
+});
+// config: use: { storageState: 'auth.json' }`],
+
+["parallel & sharding",2,
+`Test files run in parallel across workers. fullyParallel runs tests inside a file in parallel too. Sharding splits the suite across machines with --shard=x/y.`,
+`// config
+fullyParallel: true,
+workers: 4,
+
+// CLI
+npx playwright test --shard=1/3`,
+`Split the suite into 2 shards and state what each command runs.`,
+`npx playwright test --shard=1/2   # first half of the tests
+npx playwright test --shard=2/2   # second half of the tests`],
+
+["browser control",2,
+`A browser holds contexts, and a context holds pages. You control size, locale, permissions, geolocation and device emulation when you create a context.`,
+`const context = await browser.newContext({
+  viewport: { width: 390, height: 844 },
+  locale: 'en-IN',
+});
+const page = await context.newPage();
+await context.close();`,
+`Create a context emulating a phone-sized screen with geolocation permission granted.`,
+`const context = await browser.newContext({
+  viewport: { width: 390, height: 844 },
+  geolocation: { latitude: 19.07, longitude: 72.87 },
+  permissions: ['geolocation'],
+});`],
+
+["Promise",2,
+`Every Playwright call returns a Promise. Use await on each one, and Promise.all to start two things at once, such as waiting for a response while clicking.`,
+`await Promise.all([
+  page.waitForResponse('**/api/save'),
+  page.getByText('Save').click(),
+]);`,
+`Click "Save" and wait for the /api/save response at the same time, then assert its status is 200.`,
+`const [res] = await Promise.all([
+  page.waitForResponse('**/api/save'),
+  page.getByText('Save').click(),
+]);
+expect(res.status()).toBe(200);`],
+
+["Worker",2,
+`A worker is a separate process that runs tests in its own browser. Files are distributed across workers; tests in one file run in order within a worker unless fullyParallel is on.`,
+`// config
+workers: process.env.CI ? 2 : undefined,
+fullyParallel: true,
+
+// inside a test
+console.log(test.info().workerIndex);`,
+`Limit the suite to 1 worker on CI and print which worker runs a test.`,
+`// playwright.config.ts
+workers: process.env.CI ? 1 : undefined,
+// test
+console.log('worker', test.info().workerIndex);`],
+
+["Auto Wait",2,
+`Before each action Playwright waits until the element is attached, visible, stable, enabled and able to receive events. That is why fixed sleeps are almost never needed.`,
+`await page.getByText('Submit').click();   // waits automatically
+
+// avoid:
+await page.waitForTimeout(3000);`,
+`Replace a fixed 3-second sleep with a proper wait for a "Done" message.`,
+`await page.getByText('Start').click();
+await expect(page.getByText('Done')).toBeVisible();`],
+
+["Javascript Engine",2,
+`Your test code runs in Node.js (V8). The page's code runs in the browser's own JS engine. They talk through Playwright's protocol, so Node variables are not visible inside the page unless you pass them in.`,
+`const msg = 'hi';
+await page.evaluate(m => alert(m), msg);   // pass data in`,
+`Read window.innerWidth from the page and use it in a Node assertion.`,
+`const w = await page.evaluate(() => window.innerWidth);
+expect(w).toBeGreaterThan(300);`],
+
+["Evaluating JS",2,
+`page.evaluate runs a function in the page and returns its serialisable result. locator.evaluate runs it with a specific element.`,
+`const w = await page.evaluate(() => window.innerWidth);
+const t = await page.locator('h1').evaluate(el => el.textContent);`,
+`Use evaluate to read the computed font size of the first h1 on the page.`,
+`const size = await page.locator('h1').first()
+  .evaluate(el => getComputedStyle(el).fontSize);
+console.log(size);`],
+
+["Testing beyond status codes",2,
+`A 200 response can still be wrong. Also check headers, body shape and values, timing, and the side effects on other endpoints.`,
+`const res = await request.get('/api/users/1');
+expect(res.headers()['content-type']).toContain('json');
+expect(await res.json()).toMatchObject({ id: 1, email: expect.any(String) });`,
+`Assert that a response is JSON, has a numeric "id" and a string "email", and answers in under 1 second.`,
+`const t0 = Date.now();
+const res = await request.get('/api/users/1');
+expect(Date.now() - t0).toBeLessThan(1000);
+expect(res.headers()['content-type']).toContain('json');
+expect(await res.json()).toMatchObject({ id: expect.any(Number), email: expect.any(String) });`],
+
+["json schema validations",2,
+`Validate the whole shape of a response against a JSON Schema (for example with Ajv) instead of asserting fields one by one. It catches missing or wrongly typed fields.`,
+`import Ajv from 'ajv';
+const validate = new Ajv().compile({
+  type: 'object',
+  required: ['id', 'name'],
+  properties: { id: { type: 'number' }, name: { type: 'string' } },
+});
+expect(validate(await res.json())).toBe(true);`,
+`Write a schema that requires "email" (string) and "age" (number), then validate a response with it.`,
+`const validate = new Ajv().compile({
+  type: 'object',
+  required: ['email', 'age'],
+  properties: { email: { type: 'string' }, age: { type: 'number' } },
+});
+expect(validate(await res.json())).toBe(true);`],
+
+["Custom",2,
+`Extend Playwright with your own matchers (expect.extend), fixtures (test.extend) and reporters so shared checks have clear names.`,
+`expect.extend({
+  toBeEven(received: number) {
+    const pass = received % 2 === 0;
+    return { pass, message: () => 'expected ' + received + ' to be even' };
+  },
+});`,
+`Create a custom matcher toBePositive and use it in a test.`,
+`expect.extend({
+  toBePositive(received: number) {
+    return { pass: received > 0, message: () => 'expected ' + received + ' > 0' };
+  },
+});
+expect(5).toBePositive();`],
+
+["Built in",2,
+`Playwright ships with matchers, reporters (list, dot, html, json, junit), screenshots, video and the Trace Viewer, so you need few extra libraries.`,
+`// config
+reporter: [['html'], ['junit', { outputFile: 'results.xml' }]],
+
+// view a trace
+npx playwright show-trace trace.zip`,
+`Configure both an HTML and a JSON reporter.`,
+`reporter: [['html'], ['json', { outputFile: 'results.json' }]],`],
+
+["CodeGen",2,
+`Codegen records your clicks in a browser and writes Playwright code for you, picking good locators. A great way to start a test or to find a locator.`,
+`npx playwright codegen https://example.com
+npx playwright codegen --device="iPhone 13" https://example.com`,
+`Record a login flow with codegen, then tidy the generated code into a test with an assertion.`,
+`npx playwright codegen https://example.com/login
+// copy the code into a test(), then add:
+await expect(page).toHaveURL(/dashboard/);`],
+
+["Async",2,
+`Browser operations take time, so Playwright is asynchronous. Forgetting await is a classic bug: the next line runs before the action finishes.`,
+`page.click('#a');         // wrong: not awaited
+await page.click('#a');   // right`,
+`Find and fix the bug: page.goto('/'); page.getByText('Go').click(); expect(page).toHaveURL(/go/);`,
+`await page.goto('/');
+await page.getByText('Go').click();
+await expect(page).toHaveURL(/go/);`],
+
+["Network only JS",2,
+`Route handlers run in Node, so you can use full JavaScript logic to decide per request: abort, fulfil, modify or continue. This is how you block images or inject headers.`,
+`await page.route('**/*', route =>
+  route.request().resourceType() === 'image'
+    ? route.abort()
+    : route.continue()
+);`,
+`Block all requests to analytics.example.com during a test.`,
+`await page.route('**://analytics.example.com/**', route => route.abort());`],
+
+["Downloads",2,
+`Start waiting for the download event before the click, then use the Download object to read its name or save it.`,
+`const [dl] = await Promise.all([
+  page.waitForEvent('download'),
+  page.getByText('Export').click(),
+]);
+await dl.saveAs('out.csv');
+expect(dl.suggestedFilename()).toBe('report.csv');`,
+`Download a file and assert its suggested filename ends with .pdf.`,
+`const [dl] = await Promise.all([
+  page.waitForEvent('download'),
+  page.getByText('Download').click(),
+]);
+expect(dl.suggestedFilename()).toMatch(/pdf$/);`],
+
+["contexts",2,
+`A browser context is an isolated, incognito-like profile with its own cookies and storage. Each test gets a new one, and you can create several to simulate multiple users.`,
+`const userA = await browser.newContext();
+const userB = await browser.newContext();
+const pageA = await userA.newPage();
+const pageB = await userB.newPage();`,
+`Simulate two users chatting: create two contexts and show a message sent by A appears for B.`,
+`const a = await (await browser.newContext()).newPage();
+const b = await (await browser.newContext()).newPage();
+await a.goto('/chat'); await b.goto('/chat');
+await a.getByRole('textbox').fill('hello');
+await a.keyboard.press('Enter');
+await expect(b.getByText('hello')).toBeVisible();`],
+
+["Element Interactions",2,
+`Beyond click and fill you can hover, scroll into view, drag and drop, focus, and read state such as isVisible, isChecked or inputValue.`,
+`await page.locator('#x').hover();
+await page.locator('#x').scrollIntoViewIfNeeded();
+await page.locator('#a').dragTo(page.locator('#b'));
+const checked = await page.locator('#c').isChecked();`,
+`Hover a menu item to reveal a sub-menu, then click "Settings" inside it.`,
+`await page.getByRole('menuitem', { name: 'Account' }).hover();
+await page.getByRole('menuitem', { name: 'Settings' }).click();`],
+
+["scripts",2,
+`npm scripts in package.json give short commands for common runs: all tests, UI mode, one project, headed, or opening the report.`,
+`"scripts": {
+  "test": "playwright test",
+  "test:ui": "playwright test --ui",
+  "report": "playwright show-report"
+}`,
+`Add a script that runs only the chromium project in headed mode.`,
+`"test:chrome": "playwright test --project=chromium --headed"`],
+
+["project execution",2,
+`Projects are named configurations, for example per browser, device or environment. Run one with --project, and make one depend on another (such as a login setup project).`,
+`projects: [
+  { name: 'setup', testMatch: /setup/ },
+  { name: 'chromium', use: { ...devices['Desktop Chrome'] }, dependencies: ['setup'] },
+],
+
+// CLI
+npx playwright test --project=chromium`,
+`Add a mobile Safari project and run only that project.`,
+`projects: [
+  { name: 'mobile-safari', use: { ...devices['iPhone 13'] } },
+],
+// CLI
+npx playwright test --project=mobile-safari`],
+
+["ui mode",2,
+`UI mode is an interactive runner with a watch mode, a timeline, DOM snapshots before and after each action, and network and console panels. Ideal for debugging.`,
+`npx playwright test --ui`,
+`Open UI mode, run one test, and use the timeline to inspect the DOM snapshot before and after a click.`,
+`npx playwright test --ui
+// click a test, press play, then hover actions in the timeline`],
+
+["use block",2,
+`The use block sets options applied to every test in the config or project: baseURL, viewport, headless, screenshot, video, trace, locale and more.`,
+`use: {
+  baseURL: 'http://localhost:3000',
+  viewport: { width: 1280, height: 720 },
+  screenshot: 'only-on-failure',
+  video: 'retain-on-failure',
+  trace: 'on-first-retry',
+},`,
+`Set a baseURL and record a trace only when a test is retried.`,
+`use: {
+  baseURL: 'http://localhost:3000',
+  trace: 'on-first-retry',
+},`],
+
+["timeouts",2,
+`Playwright has separate timeouts: the whole test (30s), each expect (5s), each action and navigation. Raise them per config, per project or per test.`,
+`export default defineConfig({
+  timeout: 30_000,
+  expect: { timeout: 5_000 },
+  use: { actionTimeout: 10_000, navigationTimeout: 20_000 },
+});
+
+test.setTimeout(60_000);`,
+`Give one slow test a 2-minute timeout without changing the global value.`,
+`test('slow import', async ({ page }) => {
+  test.setTimeout(120_000);
+  // ...
+});`],
+
+["webServer",2,
+`webServer starts your app before the tests and stops it afterwards. Playwright waits until the URL responds.`,
+`webServer: {
+  command: 'npm run start',
+  url: 'http://localhost:3000',
+  reuseExistingServer: !process.env.CI,
+},`,
+`Configure Playwright to start "npm run dev" on port 5173 and reuse it locally.`,
+`webServer: {
+  command: 'npm run dev',
+  url: 'http://localhost:5173',
+  reuseExistingServer: !process.env.CI,
+},`],
+
+["test.info",2,
+`testInfo is a runtime object describing the current test: title, project, status, retry number, output path. You can also attach files to the report.`,
+`test('x', async ({ page }, testInfo) => {
+  console.log(testInfo.title, testInfo.project.name);
+  await testInfo.attach('shot', {
+    body: await page.screenshot(),
+    contentType: 'image/png',
+  });
+});`,
+`Attach the page HTML to the report as a text file.`,
+`await testInfo.attach('page.html', {
+  body: await page.content(),
+  contentType: 'text/html',
+});`],
+
+["maxDiffPixelRatio",2,
+`In visual comparison, toHaveScreenshot compares pixels to a stored baseline. maxDiffPixelRatio (or maxDiffPixels, threshold) sets how much difference is tolerated before failing.`,
+`await expect(page).toHaveScreenshot('home.png', {
+  maxDiffPixelRatio: 0.01,
+});`,
+`Compare only the header element against a baseline, allowing a 2% pixel difference.`,
+`await expect(page.locator('header')).toHaveScreenshot('header.png', {
+  maxDiffPixelRatio: 0.02,
+});`],
+
+["clip",2,
+`The clip option crops a screenshot to a rectangle (x, y, width, height). Use it to capture a region instead of the full page.`,
+`await page.screenshot({
+  path: 'part.png',
+  clip: { x: 0, y: 0, width: 400, height: 300 },
+});`,
+`Take a screenshot of just the top-left 200 by 100 pixels.`,
+`await page.screenshot({
+  path: 'corner.png',
+  clip: { x: 0, y: 0, width: 200, height: 100 },
+});`],
+
+["package.json",2,
+`package.json lists the dependencies (including @playwright/test) and the scripts used to run your tests locally and in CI.`,
+`{
+  "devDependencies": { "@playwright/test": "latest" },
+  "scripts": { "test": "playwright test" }
+}`,
+`Add a script that installs browsers and then runs the tests.`,
+`"ci": "playwright install --with-deps && playwright test"`],
+
+["test",2,
+`test() declares a test. Modifiers change how it runs: test.skip, test.only, test.fixme, test.slow, and test.describe.configure({ mode: 'serial' }) for ordered groups.`,
+`test('basic', async ({ page }) => { /* ... */ });
+test.skip('not ready', async () => {});
+test.describe.configure({ mode: 'serial' });`,
+`Skip a test only on Firefox, with a reason.`,
+`test('feature', async ({ page, browserName }) => {
+  test.skip(browserName === 'firefox', 'Not supported yet');
+  // ...
+});`]
+];
+
+// ================= GRAPH STRUCTURE =================
+const nodes=D.map(([id,type,def,code,task,sol])=>({id,type,def,code,task,sol}));
+const byId=Object.fromEntries(nodes.map(n=>[n.id,n]));
+const main=nodes.filter(n=>n.type===1).map(n=>n.id);
+const E=[
+ ...["Playwright test writing","Assertions","Events","hooks","selectors & locators","Api Testing","Browser","MCP","framework fundamentals","Actions","fixtures","playwright.config.ts","Requests","How playwright can interact with DOM","Worker","Promise","browser control","storageState","parallel & sharding","Auto Wait","Evaluating JS","CodeGen","Built in","Downloads","contexts","Javascript Engine","Async","json schema validations"].map(x=>[HUB,x]),
+ ["Events","Wait for Dialog Event"],["Events","Wait for Page Event"],["Events","Downloads"],
+ ["Assertions","Expect"],["Assertions","maxDiffPixelRatio"],["Assertions","Custom"],
+ ["hooks","afterAll"],["hooks","afterEach"],["hooks","test"],
+ ["Playwright test writing","test"],["Playwright test writing","test.info"],["Playwright test writing","hooks"],
+ ["Api Testing","Requests"],["Api Testing","Testing beyond status codes"],["Testing beyond status codes","json schema validations"],
+ ["Requests","Network only JS"],
+ ["Browser","browser control"],["Browser","contexts"],["Browser","Javascript Engine"],
+ ["Actions","Element Interactions"],["Actions","Auto Wait"],
+ ["fixtures","contexts"],["fixtures","Custom"],["fixtures","storageState"],
+ ["playwright.config.ts","use block"],["playwright.config.ts","timeouts"],["playwright.config.ts","webServer"],["playwright.config.ts","project execution"],["playwright.config.ts","parallel & sharding"],["playwright.config.ts","ui mode"],
+ ["framework fundamentals","scripts"],["framework fundamentals","package.json"],["framework fundamentals","playwright.config.ts"],["framework fundamentals","Async"],["Async","Promise"],
+ ["How playwright can interact with DOM","Evaluating JS"],["How playwright can interact with DOM","selectors & locators"],["How playwright can interact with DOM","Auto Wait"],
+ ["selectors & locators","Element Interactions"],["use block","clip"],["Worker","parallel & sharding"],["MCP","browser control"],["CodeGen","selectors & locators"],["Evaluating JS","Javascript Engine"],["Auto Wait","Assertions"]
+];
+const edges=E.map(([a,b])=>({a:byId[a],b:byId[b]})).filter(e=>e.a&&e.b);
+nodes.forEach(n=>n.nb=new Set());edges.forEach(e=>{e.a.nb.add(e.b);e.b.nb.add(e.a)});
+
+// ================= PROGRESS =================
+let practiced=new Set();try{practiced=new Set(JSON.parse(localStorage.getItem("pw_practiced")||"[]"))}catch(e){}
+const saveP=()=>{try{localStorage.setItem("pw_practiced",JSON.stringify([...practiced]))}catch(e){}};
+function prog(){$("#pt").textContent=practiced.size+" / "+nodes.length+" practiced";$("#pbar").style.width=practiced.size/nodes.length*100+"%"}
+function $(s){return document.querySelector(s)}
+
+// ================= CANVAS =================
+const cv=$("#c"),ctx=cv.getContext("2d");let W,H,DPR;
+function resize(){DPR=devicePixelRatio||1;W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0)}
+addEventListener("resize",resize);resize();
+const R={0:11,1:8,2:6};let view={x:0,y:0,k:1},alpha=1;
+function init(){
+  nodes.forEach(n=>{n.vx=n.vy=0;n.drag=false;
+    if(n.type===0){n.x=0;n.y=0}else{const a=Math.random()*6.283,r=(n.type===1?130:270)+Math.random()*90;n.x=Math.cos(a)*r;n.y=Math.sin(a)*r}});
+  view={x:W/2,y:H/2+20,k:Math.max(.5,Math.min(1,Math.min(W,H)/720+.3))};alpha=1;
+}
+function step(){
+  const hub=nodes[0];
+  for(let i=0;i<nodes.length;i++){const a=nodes[i];
+    for(let j=i+1;j<nodes.length;j++){const b=nodes[j];let dx=b.x-a.x,dy=b.y-a.y,d2=dx*dx+dy*dy+.01;if(d2>160000)continue;
+      const d=Math.sqrt(d2),f=2800/d2*alpha;dx/=d;dy/=d;a.vx-=dx*f;a.vy-=dy*f;b.vx+=dx*f;b.vy+=dy*f}}
+  for(const e of edges){const dx=e.b.x-e.a.x,dy=e.b.y-e.a.y,d=Math.hypot(dx,dy)||1,rest=(e.a===hub||e.b===hub)?150:88,f=(d-rest)*.02*alpha,fx=dx/d*f,fy=dy/d*f;
+    e.a.vx+=fx;e.a.vy+=fy;e.b.vx-=fx;e.b.vy-=fy}
+  for(const n of nodes){n.vx-=n.x*.004*alpha;n.vy-=n.y*.004*alpha;n.vx*=.82;n.vy*=.82;if(n===hub&&!n.drag){n.vx*=.3;n.vy*=.3}if(!n.drag){n.x+=n.vx;n.y+=n.vy}}
+  alpha=Math.max(alpha*.992,.04);
+}
+let hover=null,selected=null,query="",t=0;
+const match=n=>!query||n.id.toLowerCase().includes(query);
+function draw(){
+  t+=.02;ctx.clearRect(0,0,W,H);ctx.save();ctx.translate(view.x,view.y);ctx.scale(view.k,view.k);
+  const f=hover||selected;
+  for(const e of edges){const on=f&&(e.a===f||e.b===f),dim=(f&&!on)||(query&&!(match(e.a)||match(e.b)));
+    ctx.beginPath();ctx.moveTo(e.a.x,e.a.y);ctx.lineTo(e.b.x,e.b.y);
+    ctx.strokeStyle=on?"rgba(142,197,255,.95)":dim?"rgba(255,255,255,.05)":"rgba(255,255,255,.22)";ctx.lineWidth=(on?1.8:1)/view.k;ctx.stroke()}
+  for(const n of nodes){
+    const isF=f===n,nbr=f&&f.nb.has(n),dim=(f&&!isF&&!nbr)||(query&&!match(n)),r=R[n.type]*(isF?1.25:1),done=practiced.has(n.id);
+    const col=n.type===0?"#8ec5ff":n.type===1?"#fff":"#8fa3c4";
+    ctx.globalAlpha=dim?.25:1;ctx.shadowColor=done?"#4ade80":col;ctx.shadowBlur=n.type===0?28+Math.sin(t*2)*8:(isF||nbr?18:8);
+    ctx.beginPath();ctx.arc(n.x,n.y,r,0,7);ctx.fillStyle=done?"#4ade80":col;ctx.fill();ctx.shadowBlur=0;
+    if(selected===n){ctx.beginPath();ctx.arc(n.x,n.y,r+6,0,7);ctx.strokeStyle="#8ec5ff";ctx.lineWidth=1.6/view.k;ctx.stroke()}
+    const fs=n.type===0?15:n.type===1?13:11.5;ctx.font=`${n.type<2?600:500} ${fs}px system-ui,sans-serif`;ctx.textAlign="center";ctx.textBaseline="top";
+    const label=(done?"✓ ":"")+n.id;ctx.lineWidth=3;ctx.strokeStyle="rgba(20,28,38,.8)";ctx.strokeText(label,n.x,n.y+r+4);
+    ctx.fillStyle=done?"#b7f7cf":n.type===2?"#dbe5f5":"#fff";ctx.fillText(label,n.x,n.y+r+4);ctx.globalAlpha=1}
+  ctx.restore();
+}
+function loop(){step();draw();requestAnimationFrame(loop)}
+const toW=(x,y)=>({x:(x-view.x)/view.k,y:(y-view.y)/view.k});
+function pick(px,py){const p=toW(px,py);let best=null,bd=1e9;for(const n of nodes){const d=Math.hypot(n.x-p.x,n.y-p.y);if(d<R[n.type]+11/view.k&&d<bd){best=n;bd=d}}return best}
+let drag=null,pan=null,moved=false;
+cv.addEventListener("pointerdown",e=>{cv.setPointerCapture(e.pointerId);moved=false;const n=pick(e.clientX,e.clientY);
+  if(n){drag=n;n.drag=true;alpha=Math.max(alpha,.5)}else pan={x:e.clientX,y:e.clientY,vx:view.x,vy:view.y}});
+cv.addEventListener("pointermove",e=>{
+  if(drag){const p=toW(e.clientX,e.clientY);drag.x=p.x;drag.y=p.y;drag.vx=drag.vy=0;moved=true;alpha=Math.max(alpha,.35)}
+  else if(pan){view.x=pan.vx+e.clientX-pan.x;view.y=pan.vy+e.clientY-pan.y;moved=true}
+  else{hover=pick(e.clientX,e.clientY);cv.style.cursor=hover?"pointer":"grab"}});
+cv.addEventListener("pointerup",()=>{if(drag){drag.drag=false;if(!moved)select(drag);drag=null}else if(pan&&!moved)closePanel();pan=null});
+cv.addEventListener("wheel",e=>{e.preventDefault();const nk=Math.min(3,Math.max(.35,view.k*Math.exp(-e.deltaY*.001)));
+  view.x=e.clientX-(e.clientX-view.x)*(nk/view.k);view.y=e.clientY-(e.clientY-view.y)*(nk/view.k);view.k=nk},{passive:false});
+
+// ================= PANEL =================
+const panel=$("#panel");let tab="d";
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+function hl(code){
+  return esc(code).replace(/(\/\/.*$)|('(?:[^'\\\n]|\\.)*')|(\b(?:await|async|const|let|import|from|export|new|return|class|constructor|private|if)\b)/gm,
+    (m,c,s,k)=>c?`<span class="c">${c}</span>`:s?`<span class="s">${s}</span>`:`<span class="k">${k}</span>`);
+}
+function select(n){selected=n;tab="d";openPanel();}
+function closePanel(){selected=null;panel.classList.remove("show")}
+function openPanel(){
+  const n=selected;if(!n)return;
+  $("#pTag").textContent=["Core","Main topic","Sub-topic"][n.type];$("#pTitle").textContent=(practiced.has(n.id)?"✓ ":"")+n.id;
+  document.querySelectorAll(".tb").forEach(b=>b.classList.toggle("on",b.dataset.t===tab));
+  const body=$("#pBody");
+  if(tab==="d"){
+    body.innerHTML=`<p>${esc(n.def)}</p><h4>Related concepts</h4><div class="chips">${[...n.nb].map(m=>`<b data-id="${esc(m.id)}">${esc(m.id)}</b>`).join("")}</div>`;
+    body.querySelectorAll("[data-id]").forEach(b=>b.onclick=()=>select(byId[b.dataset.id]));
+  }else if(tab==="e"){
+    body.innerHTML=`<h4 style="margin-top:0">TypeScript example</h4><div class="codewrap"><button class="b cp" id="cp">Copy</button><pre>${hl(n.code)}</pre></div>`;
+    $("#cp").onclick=()=>{try{navigator.clipboard.writeText(n.code)}catch(e){}$("#cp").textContent="Copied ✓";setTimeout(()=>$("#cp").textContent="Copy",1200)};
+  }else{
+    const done=practiced.has(n.id);
+    body.innerHTML=`<h4 style="margin-top:0">Your task</h4><div class="task">${esc(n.task)}</div>
+      <h4>Write your answer</h4><textarea id="ans" spellcheck="false" placeholder="Type your code here…"></textarea>
+      <div class="row"><button class="b" id="shw">👀 Show solution</button><button class="b ${done?"ok":""}" id="mk">${done?"✓ Practiced (tap to undo)":"I did it ✓"}</button></div>
+      <div class="sol" id="sol"><h4>Reference solution</h4><div class="codewrap"><pre>${hl(n.sol)}</pre></div><p style="margin-top:10px;font-size:12px;color:var(--mut)">Your answer can differ. What matters is that it uses the right Playwright idea.</p></div>`;
+    $("#shw").onclick=()=>$("#sol").classList.toggle("show");
+    $("#mk").onclick=()=>{practiced.has(n.id)?practiced.delete(n.id):practiced.add(n.id);saveP();prog();openPanel()};
+    const k="pw_ans_"+n.id;try{$("#ans").value=localStorage.getItem(k)||""}catch(e){}
+    $("#ans").oninput=e=>{try{localStorage.setItem(k,e.target.value)}catch(_){}};
+  }
+  panel.classList.add("show");
+}
+document.querySelectorAll(".tb").forEach(b=>b.onclick=()=>{tab=b.dataset.t;openPanel()});
+$("#pX").onclick=closePanel;
+$("#q").addEventListener("input",e=>{query=e.target.value.trim().toLowerCase();if(query){const m=nodes.find(match);if(m)select(m)}});
+$("#reset").onclick=()=>{$("#q").value="";query="";closePanel();init()};
+$("#rand").onclick=()=>{const todo=nodes.filter(n=>!practiced.has(n.id));if(!todo.length){alert("All nodes practiced! 🎉");return}
+  const n=todo[Math.floor(Math.random()*todo.length)];selected=n;tab="p";openPanel();alpha=Math.max(alpha,.2)};
+
+prog();init();loop();
+</script>
+</body>
+</html>
